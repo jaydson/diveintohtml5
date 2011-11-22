@@ -121,43 +121,43 @@ NETWORK:
 
 <p class=a>&#x2767;
 
-<h2 id=events>The Flow of Events</h2>
+<h2 id=events>O fluxo de eventos</h2>
 
-<p>So far, I&#8217;ve talked about offline web applications, the cache manifest, and the offline application cache (&#8220;appcache&#8221;) in vague, semi-magical terms. Things are downloaded, browsers make decisions, and everything Just Works. You know better than that, right? I mean, this is web development we&#8217;re talking about. Nothing ever Just Works.
+<p>Até agora, eu já falei sobre aplicações web offline, o manifesto cache, e sobre o cache em aplicações offline (&#8220;appcache&#8221;) em imprecisos e semi-mágicos termos. As coisas são baixadas, os navegadores tomam decisões, e tudo funciona. Você sabe mais do que isso, certo? Quero dizer, este é o desenvolvimento web que estamos falando. Nada nunca funciona.
 
-<p>First, let&#8217;s talk about the flow of events. Specifically, <abbr>DOM</abbr> events. When your browser visits a page that points to a cache manifest, it fires off a series of events on the <code>window.applicationCache</code> object. I know this looks complicated, but trust me, this is the simplest version I could come up with that didn&#8217;t leave out important information.
+<p>Primeiro, vamos falar sobre o fluxo de eventos. Especificamente, eventos <abbr>DOM</abbr>. Quando o seu browser visita uma página que aponta para um manifesto cache, isso dispara uma série de eventos no objeto <code>window.applicationCache</code>. Eu sei que isso parece complicado, mas confie em mim, essa é versão mais simples que eu poderia sugerir sem deixar de fora informações importantes.
 
 <ol>
-<li>As soon as it notices a <code>manifest</code> attribute on the <code>&lt;html></code> element, your browser fires a <strong><code>checking</code></strong> event. (All the events listed here are fired on the <code>window.applicationCache</code> object.) The <code>checking</code> event is always fired, regardless of whether you have previously visited this page or any other page that points to the same cache manifest.
-<li>If your browser has never seen this cache manifest before...
+<li>Tão logo quando o browser percebe um atributo <code>manifest</code> no elemento <code>&lt;html></code>, o seu browser dispara o evento <strong><code>checking</code></strong>. (Todos os eventos listados aqui são disparados no objeto <code>window.applicationCache</code> .) O evento <code>checking</code> é sempre disparado, independente de você ter visitado previamente esta página ou qualquer outra página que aponte para o mesmo manifesto cache.
+<li>Se o seu browser nunca viu o manifesto cache antes...
   <ul>
-  <li>It will fire a <strong><code>downloading</code></strong> event, then start to download the resources listed in the cache manifest.
-  <li>While it&#8217;s downloading, your browser will periodically fire <strong><code>progress</code></strong> events, which contain information on how many files have been downloaded already and how many files are still queued to be downloaded.
-  <li>After all resources listed in the cache manifest have been downloaded successfully, the browser fires one final event, <strong><code>cached</code></strong>. This is your signal that the offline web application is fully cached and ready to be used offline. That&#8217;s it; you&#8217;re done.
+  <li>Ele irá disparar o evento <strong><code>downloading</code></strong>, e então começará a baixar os arquivos listados no manifesto cache.
+  <li>Enquanto está baixando, o seu browser irá disparar periodicamente vários eventos <strong><code>progress</code></strong>, que contêm informações de quantos arquivos já foram baixados e quantos arquivos ainda estão sendo baixados.
+  <li>Após a conclusão com sucesso do download de todos arquivos listados no manifesto cache, o browser irá disparar um evento final, <strong><code>cached</code></strong>. Esse é o seu sinal de que a aplicação web offline está totalmente em cache e pronta para ser usada offline. É isso; Você está pronto.
   </ul>
-<li>On the other hand, if you have previously visited this page or any other page that points to the same cache manifest, then your browser already knows about this cache manifest. It may already have some resources in the appcache. It may have the entire working offline web application in the appcache. So now the question is, has the cache manifest changed since the last time your browser checked it?
+<li>Do outro lado, se você previamente visitou esta página ou qualquer outra página que aponte para o mesmo manifesto cache, então o seu browser já sabe sobre esse manifesto cache. Ele já pode ter alguns arquivos no appcache. Ele pode ter toda a aplicacão web offline funcionando no appcache. Agora a questão é, o manifesto cache mudou desde a última vez que o seu browser verificou?
   <ul>
-  <li>If the answer is no, the cache manifest has not changed, your browser will immediately fire a <strong><code>noupdate</code></strong> event. That&#8217;s it; you&#8217;re done.
-  <li>If the answer is yes, the cache manifest <em>has</em> changed, your browser will fire a <strong><code>downloading</code></strong> event and start re-downloading every single resource listed in the cache manifest.
-  <li>While it&#8217;s downloading, your browser will periodically fire <strong><code>progress</code></strong> events, which contain information on how many files have been downloaded already and how many files are still queued to be downloaded.
-  <li>After all resources listed in the cache manifest have been re-downloaded successfully, the browser fires one final event, <strong><code>updateready</code></strong>. This is your signal that the new version of your offline web application is fully cached and ready to be used offline. <em>The new version is not yet in use.</em> To &#8220;hot-swap&#8221; to the new version without forcing the user to reload the page, you can manually call the <code>window.applicationCache.swapCache()</code> function.
+  <li>Se a resposta é não, o manifesto cache não mudou, o seu browser irá imediatamente disparar o evento <strong><code>noupdate</code></strong>. É isso; você está pronto.
+  <li>Se a resposta é sim, o manifesto cache mudou, então o seu browser irá disparar o evento <strong><code>downloading</code></strong> e começará a baixar novamente cada um dos arquivos listados no manfesto cache.
+  <li>Enquanto está fazendo o download, o seu browser irá disparar periodicamente vários eventos <strong><code>progress</code></strong>, que contêm informações de quantos arquivos já foram baixados e quantos arquivos ainda estão na fila para baixar.
+  <li>Após a conclusão com sucesso do re-download de todos arquivos listados no manifesto cache, o browser irá disparar um evento final, <strong><code>updateready</code></strong>. Esse é o seu sinal de que a aplicação web offline está totalmente em cache e pronta para ser usada offline. <em>Essa nova versão ainda não esta em uso.</em> Para fazer um &#8220;hot-swap&#8221;(trocar) para a nova versão sem forçar o usuário a recarregar a página, você pode chamar manualmente a função <code>window.applicationCache.swapCache()</code>.
   </ul>
 </ol>
 
-<p>If, at any point in this process, something goes horribly wrong, your browser will fire an <strong><code>error</code></strong> event and stop. Here is a hopelessly abbreviated list of things that could go wrong:
+<p>Se, em qualquer ponto deste processo, alguma coisa der horrívelmente errada, o seu browser irá disparar um evento <strong><code>error</code></strong> e irá parar. Aqui está uma lista abreviada de coisas que poderiam dar errado:
 
 <ul>
-<li>The cache manifest returned an <abbr>HTTP</abbr> error 404 (Page Not Found) or 410 (Permanently Gone).
-<li>The cache manifest was found and hadn&#8217;t changed, but the <abbr>HTML</abbr> page that pointed to the manifest failed to download properly.
-<li>The cache manifest changed while the update was being run.
-<li>The cache manifest was found and had changed, but the browser failed to download one of the resources listed in the cache manifest.
+<li>O manifesto cache retornou um erro <abbr>HTTP</abbr> 404 (Página não encontrada) ou 410 (Movida permanentemente).
+<li>O manifesto cache foi encontrado e não sofreu alterações, mas a página <abbr>HTML</abbr> qua aponta para manifesto falhou ao fazer o download corretamente.
+<li>O manifesto cache foi alterado enquanto a atualização estava acontecendo.
+<li>O manifesto cache foi encontrado e mudou, mas o browser falhou em baixar um arquivo listado no manifesto cache.
 </ul>
 
-<h2 id=debugging>The fine art of debugging, a.k.a. &#8220;Kill me! Kill me now!&#8221;</h2>
+<h2 id=debugging>A fina arte do debugging, vulgo &#8220;Mate-me! Mate-me agora!&#8221;</h2>
 
-<p>I want to call out two important points here. The first is something you just read, but I bet it didn&#8217;t really sink in, so here it is again: if even a single resource listed in your cache manifest file fails to download properly, the entire process of caching your offline web application will fail. Your browser will fire the <code>error</code> event, but there is no indication of what the actual problem was. This can make debugging offline web applications even more frustrating than usual.
+<p>Eu quero ressaltar dois pontos importantes aqui. O primeiro é algo que você acabou de ler, mas eu aposto que realmente não ficou claro, então aqui está mais uma vez: Se apenas um único arquivo listado em seu manifesto cache não for baixado corretamente, todo o processo de cache de sua aplicação web offline falhará. O seu browser irá disparar o evento de erro, mas não há nenhuma indicação de qual foi o real problema. Isso pode fazer com que a depuração de aplicativos web off-line fiquem ainda mais frustrantes do que o habitual.
 
-<p>The second important point is something that is not, technically speaking, an error, but it will look like a serious browser bug until you realize what&#8217;s going on. It has to do with exactly how your browser checks whether a cache manifest file has changed. This is a three-phase process. This is boring but important, so pay attention.
+<p>O segundo ponto importante é algo que não é, tecnicamente falando, um erro, mas ele vai parecer um bug sério do browser até que você perceba o que está acontecendo. Tem a ver exatamente com a maneira que o seu navegador verifica se um arquivo de manifesto cache mudou. Este é um processo de três fases. Isso é chato, mas é importante, então preste atenção.
 
 <ol>
 <li>Via normal <abbr>HTTP</abbr> semantics, your browser will check whether the cache manifest has expired. Just like any other file being served over <abbr>HTTP</abbr>, your web server will typically include meta-information about the file in the <abbr>HTTP</abbr> response headers. Some of these <abbr>HTTP</abbr> headers (<code>Expires</code> and <code>Cache-Control</code>) tell your browser how it is allowed to cache the file without ever asking the server whether it has changed. This kind of caching has nothing to do with offline web applications. It happens for pretty much every <abbr>HTML</abbr> page, stylesheet, script, image, or other resource on the web.
